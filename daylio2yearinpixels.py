@@ -24,33 +24,34 @@ def read_daylio(filename):
     """
 
     # Parse the Daylio output.
-    columns = ['year', 'date', 'day', 'time', 'mood', 'activities', 'note']
+    columns = ['full_date', 'date', 'day', 'time', 'mood', 'activities', 'note']
     mood = {c: [] for c in columns}
     with open(filename, 'r') as f:
         next(f)  # skip header
         lines = f.readlines()
+        prev_date = None
         for line in lines:
             line = line.strip().split(',')
-            mood['year'].append(line[0])
+            # if mood['full_date'] != prev_date:
+            mood['full_date'].append(line[0])
             mood['date'].append(line[1])
             mood['day'].append(line[2])
             mood['time'].append(line[3])
             mood['mood'].append(line[4])
             mood['activities'].append(line[5])
             mood['note'].append(line[6])
+            # prev_date = mood['full_date']
+
 
     # Convert the dates to datetime objects.
-    date_format = '%Y %d %B'
-    daymonth = [i.split(' ') for i in mood['date']]
-    dates = ['{y:04d} {d:02d} {m}'.format(y=int(i[0]), m=i[1][1], d=int(i[1][0])) for i in zip(mood['year'], daymonth)]
-    dates = [datetime.strptime(i, date_format) for i in dates]
+    dates = [datetime.strptime(i, r'%Y-%m-%d') for i in mood['full_date']]
 
     # Convert mood to a numeric value (higher = better).
-    convert = {'rad': '5',
-               'good': '4',
-               'meh': '3',
-               'fugly': '2',
-               'awful': '1'}
+    convert = {'amazing ': '5',
+               'happy': '4',
+               'average': '3',
+               'sad ': '2',
+               'horrible': '1'}
     for entry in convert:
         for count, m in enumerate(mood['mood']):
             if m == entry:
@@ -112,4 +113,3 @@ if __name__ == '__main__':
 
     daylio = read_daylio(sys.argv[2])
     write_year_in_pixels(daylio, sys.argv[3], year=int(sys.argv[1]))
-
